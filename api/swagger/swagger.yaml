@@ -1,0 +1,98 @@
+# Is My OpenBazaar Store Online
+# API Definition
+swagger: '2.0'
+info:
+  title: Is My OpenBazaar Store Online? - API
+  description: Quickly get your store's online status
+  version: "1.0.0"
+# the domain of the service
+host: imobso.grimtech.net
+# array of all schemes that your API supports
+schemes:
+  - https
+# will be prefixed to all paths
+basePath: /v1
+produces:
+  - application/json
+paths:
+  /online/{guid}:
+    x-swagger-router-controller: online_controller
+    get:
+      operationId: isOnline
+      summary: Online Status
+      description: |
+        Get the online status of your OpenBazaar store. This is found by querying a live OpenBazaar-Server instance. If said server is able to retrieve your store's profile, your store is considered online.
+      parameters:
+        - name: guid
+          in: path
+          description: Your OpenBazaar store ID.
+          required: true
+          type: string
+          format: string
+      tags:
+        - status
+      responses:
+        200:
+          description: An array of products
+          schema:
+            $ref: '#/definitions/Status'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /hello:
+    # binds a127 app logic to a route
+    x-swagger-router-controller: hello_world
+    get:
+      description: Returns 'Hello' to the caller
+      # used as the method name of the controller
+      operationId: hello
+      parameters:
+        - name: name
+          in: query
+          description: The name of the person to whom to say hello
+          required: false
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            # a pointer to a definition
+            $ref: "#/definitions/HelloWorldResponse"
+        # responses may fall through to errors
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /swagger:
+    x-swagger-pipe: swagger_raw
+definitions:
+  HelloWorldResponse:
+    required:
+      - message
+    properties:
+      message:
+        type: string
+  Status:
+    type: object
+    properties:
+      short_description:
+        type: string
+        description: The OpenBazaar short description of the store.
+      online:
+        type: boolean
+        description: True if the store is online, false otherwise.
+  ErrorResponse:
+    required:
+      - message
+    properties:
+      message:
+        type: string
+  Error:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
