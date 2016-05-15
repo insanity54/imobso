@@ -20,4 +20,8 @@ SwaggerExpress.create(config, function(err, swaggerExpress) {
   if (swaggerExpress.runner.swagger.paths['/hello']) {
     console.log('try this:\ncurl http://127.0.0.1:' + port + '/hello?name=Scott');
   }
+
+  if (swaggerExpress.runner.swagger.paths['/online/']) {
+    console.log('try this:\ncurl http://127.0.0.1:' + port + '/online/a06aa22a38f0e62221ab74464c311bd88305f88c');
+  }
 });

@@ -33,7 +33,7 @@ paths:
         - status
       responses:
         200:
-          description: An array of products
+          description: The status of the OpenBazaar store
           schema:
             $ref: '#/definitions/Status'
         default:

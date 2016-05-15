@@ -10,11 +10,15 @@
 
   It is a good idea to list the modules that your application depends on in the package.json in the project root
  */
-var util = require('util');
-var Api = require('insane-openbazaar-api');
+var OpenBazaarAPI = require('insane-openbazaar-api');
 
-console.log(process.env.OB_USERNAME);
-var ob = new Api({
+
+for (var i=0; i<Object.keys(process.env).length; i++) {
+  if( Object.keys(process.env)[i].substring(0, 3) == 'OB_')
+    console.log('%s=%s', Object.keys(process.env)[i], process.env[Object.keys(process.env)[i]]);
+}
+
+var ob = new OpenBazaarAPI({
   "host": process.env.OB_HOST,
   "port": process.env.OB_PORT,
   "proto": process.env.OB_PROTO,
@@ -47,22 +51,29 @@ module.exports = {
  */
 function isOnline(req, res) {
   // variables defined in the Swagger document can be referenced using req.swagger.params.{parameter_name}
-  console.log(req.swagger.params)
+  //console.log(req.swagger.params)
   var guid = req.swagger.params.guid.value || '';
   var online;
-  var short_description;
 
-  if (!guid) return res.json({"error": {"code": 1, "message": "no guid was received!"}});
+  if (!guid) return res.status(400).json({"error": {"code": 1, "message": "no guid was received!"}});
   //var hello = util.format('Hello, %s!', name);
 
   // @todo #todo - make call
-  ob.profile(guid, function(err, prof) {
+  ob.get('profile', guid, function(err, reply) {
 
-    if (err) return res.json({"error": {"code": 2, "message": err}});
-    if (typeof prof.profile === 'undefined') return res.json({"error": {"code": 3, "message": err}});
+    if (err) {
+      console.log(err);
+      return res.status(500).json({"error": {"code": 2, "message": err.message}});
+    }
+
+    // assume offline if no profile retrieved
+    if (typeof reply.profile === 'undefined') return res.status(200).json({
+      "online": false,
+      "short_description": ""
+    });
 
     // this sends back a JSON response which is a single string
-    res.json({"online": true, "short_description": short_description});
+    res.status(200).json({"online": true, "short_description": reply.profile.short_description});
   });
 
 }
