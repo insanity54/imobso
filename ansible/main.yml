@@ -35,4 +35,7 @@
     openbazaar_additional_flags: ""
 
   tasks:
-    - name: 
+    - name: clone app repo to server
+      git: repo=https://github.com/insanity54/imobso.git dest=/tmp/imobso/source
+    - name: copy client/dist files to nginx dir
+      copy: 
