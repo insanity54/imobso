@@ -49,7 +49,7 @@
 
   tasks:
     - name: clone app repo to server
-      git: repo=https://github.com/insanity54/imobso.git dest=/tmp/imobso/source
+      git: track_submodules=yes repo=https://github.com/insanity54/imobso.git dest=/tmp/imobso/source
 
     - name: create app group
       group: name=imobso state=present
@@ -65,7 +65,7 @@
 
       # @todo switch to copy module once https://github.com/ansible/ansible-modules-core/issues/2875 is closed
     - name: copy client/dist files to nginx dir
-      command: creates=/var/www/myopenbazaar.top/index.html cp -a /tmp/imobso/source/dist/. /var/www/myopenbazaar.top
+      command: creates=/var/www/myopenbazaar.top/index.html cp -a /tmp/imobso/source/client/dist/. /var/www/myopenbazaar.top
 
     - name: set permissions for client/dist files
       file: path=/var/www/myopenbazaar.top/ owner=www-data group=www-data mode=0755 recurse=true
@@ -74,13 +74,6 @@
 
     - name: install node app
       command: creates=/var/node/imobso/package.json cp -a /tmp/imobso/source/. /var/node/imobso
-
-      # not needed because nf writes the env vals to the upstart script
-    # - name: put openbazaar password in env file
-    #   lineinfile: dest=/home/imobso/.bash_profile line="export OB_PASSWORD={{ openbazaar_password }}"
-    #
-    # - name: put openbazaar username in env file
-    #   lineinfile: dest=/home/imobso/.bash_profile line="export OB_USERNAME={{ openbazaar_username }}"
 
     - name: create app upstart script
       environment:
@@ -96,11 +89,15 @@
         - name: imobso-web-1.conf
       notify:
         - restart app
+        - restart openbazaar
 
 
   handlers:
     - name: reload nginx
       service: name=nginx state=reloaded
+
+    - name: restart openbazaar
+      service: name=openbazaard state=restarted
 
     - name: restart app
       service: name=imobso state=restarted
