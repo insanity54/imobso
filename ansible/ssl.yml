@@ -1,0 +1,21 @@
+---
+
+- hosts: imobso
+  remote_user: root
+  roles:
+    - letsencrypt
+  vars_files:
+    - vars/secret.yml
+  vars:
+    letsencrypt_webroot_path: /var/www/myopenbazaar.top
+    letsencrypt_email: {{ vault_admin_email }}
+    letsencrypt_cert_domains:
+      - myopenbazaar.top
+
+  tasks:
+    - name: restart nginx after letsencrypt runs
+      notify: restart nginx
+
+  handlers:
+    - name: restart nginx
+      service: name=nginx state=restarted

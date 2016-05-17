@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ansible-playbook -i ~/.ansible-inventory --vault-password-file ~/.ansible-vault-password ./deploy.yml
+ansible-playbook -i ~/.ansible-inventory --vault-password-file ~/.ansible-vault-password ./main.yml

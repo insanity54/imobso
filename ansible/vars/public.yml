@@ -1,0 +1,3 @@
+openbazaar_allowed_ip: {{ vault_openbazaar_allowed_ip }}
+openbazaar_username: {{ vault_openbazaar_username }}
+openbazaar_password: {{ vault_openbazaar_password }}

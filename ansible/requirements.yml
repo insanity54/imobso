@@ -6,3 +6,7 @@
   src: insanity54.bootstrap
 - name: nodejs
   src: https://github.com/AnsibleShipyard/ansible-nodejs
+- name: nginx
+  src: geerlingguy.nginx
+- name: letsencrypt
+  src: thefinn93.letsencrypt

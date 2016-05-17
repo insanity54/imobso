@@ -10,22 +10,28 @@
   vars_files:
     - vars/secret.yml
   vars:
-    nginx_sites:
-     - server:
-        file_name: imobso.teamrpc.info
-        listen: 80
-        server_name: imobso.teamrpc.info
-        location1:
-          name: /
-          try_files: "$uri $uri/ /index.html"
+    nginx_user: www-data
+    nginx_default_release: ""
+    nginx_remove_default_vhost: true
+    nginx_vhosts:
+      - listen: "80 default_server"
+        server_name: "myopenbazaar.top"
+        root: "/var/www/myopenbazaar.top"
+        index: "index.html index.htm"
 
-        location2:
-          name: /v1/
-            proxy_pass: "http://127.0.0.1:5000/"
-            proxy_redirect:  'off'
-            proxy_set_header: 'Host $host'
-            proxy_set_header: 'X-Real-IP $remote_addr'
-            proxy_set_header: 'X-Forwarded-For $proxy_add_x_forwarded_for'
+        extra_parameters: |
+          location / {
+            try_files $uri $uri/ =404;
+          }
+          location /v1/ {
+            proxy_pass         http://127.0.0.1:5000/;
+            proxy_redirect     off;
+            proxy_buffering    off;
+            proxy_set_header   X-Real-IP $remote_addr;
+            proxy_set_header   X-Scheme $scheme;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header   Host $http_host;
+          }
 
     openbazaar_git_url: https://github.com/OpenBazaar/OpenBazaar-Server.git
     openbazaar_git_version: 11b492ef1f397d2d465506be2cfc1d812e98a2d0
@@ -34,8 +40,67 @@
     openbazaar_allowed_ip: "{{ vault_openbazaar_allowed_ip }}"
     openbazaar_additional_flags: ""
 
+    letsencrypt_webroot_path: /var/www/myopenbazaar.top
+    letsencrypt_email: "{{ vault_admin_email }}"
+    letsencrypt_cert_domains:
+      - myopenbazaar.top
+    letsencrypt_renewal_command_args: '--renew-hook "service restart nginx"'
+
+
   tasks:
     - name: clone app repo to server
       git: repo=https://github.com/insanity54/imobso.git dest=/tmp/imobso/source
+
+    - name: create app group
+      group: name=imobso state=present
+
+    - name: create app user
+      user: name=imobso shell=/bin/bash
+
+    - name: create folder for node
+      file: state=directory path=/var/node/imobso owner=imobso owner=imobso group=imobso mode=0644
+
+    - name: create folder for nginx
+      file: state=directory path=/var/www/myopenbazaar.top owner=www-data group=www-data mode=0755
+
+      # @todo switch to copy module once https://github.com/ansible/ansible-modules-core/issues/2875 is closed
     - name: copy client/dist files to nginx dir
-      copy: 
+      command: creates=/var/www/myopenbazaar.top/index.html cp -a /tmp/imobso/source/dist/. /var/www/myopenbazaar.top
+
+    - name: set permissions for client/dist files
+      file: path=/var/www/myopenbazaar.top/ owner=www-data group=www-data mode=0755 recurse=true
+      notify:
+        - reload nginx
+
+    - name: install node app
+      command: creates=/var/node/imobso/package.json cp -a /tmp/imobso/source/. /var/node/imobso
+
+      # not needed because nf writes the env vals to the upstart script
+    # - name: put openbazaar password in env file
+    #   lineinfile: dest=/home/imobso/.bash_profile line="export OB_PASSWORD={{ openbazaar_password }}"
+    #
+    # - name: put openbazaar username in env file
+    #   lineinfile: dest=/home/imobso/.bash_profile line="export OB_USERNAME={{ openbazaar_username }}"
+
+    - name: create app upstart script
+      environment:
+        OB_PASSWORD: "{{ openbazaar_password }}"
+        OB_USERNAME: "{{ openbazaar_username }}"
+      command: creates=/etc/init/imobso.conf chdir=/var/node/imobso nf export --app imobso
+
+    - name: copy upstart scripts to init dir
+      copy: remote_src=True src=/var/node/imobso/{{ item.name }} dest=/etc/init/
+      with_items:
+        - name: imobso.conf
+        - name: imobso-web.conf
+        - name: imobso-web-1.conf
+      notify:
+        - restart app
+
+
+  handlers:
+    - name: reload nginx
+      service: name=nginx state=reloaded
+
+    - name: restart app
+      service: name=imobso state=restarted
