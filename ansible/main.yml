@@ -23,7 +23,7 @@
           location / {
             try_files $uri $uri/ =404;
           }
-          location /v1/ {
+          location /api/ {
             proxy_pass         http://127.0.0.1:5000/;
             proxy_redirect     off;
             proxy_buffering    off;
@@ -53,7 +53,7 @@
 
   tasks:
     - name: clone app repo to server
-      git: track_submodules=yes repo=https://github.com/insanity54/imobso.git dest=/tmp/imobso/source
+      git: track_submodules=yes force=yes repo=https://github.com/insanity54/imobso.git dest=/tmp/imobso/source
 
     - name: create app group
       group: name=imobso state=present
@@ -61,9 +61,9 @@
     - name: create app user
       user: name=imobso shell=/bin/bash
 
-    - name: set up environment variables
-      tags: env
-      template: src=env.j2 dest=/etc/profile.d/imobso.sh owner=root group=root mode=0755
+    # - name: set up system environment variables
+    #   tags: env
+    #   template: src=system-env.j2 dest=/etc/profile.d/imobso.sh owner=root group=root mode=0755
 
     - name: create folder for node
       file: state=directory path=/var/node/imobso owner=imobso owner=imobso group=imobso mode=0644
@@ -88,8 +88,11 @@
     - name: install node app
       npm: path=/var/node/imobso
 
-    - name: create app log directory
-      file: path=/var/log/imobso owner=imobso group=imobso mode=0644 state=directory
+    - name: set node app permissions
+      file: path=/var/node/ owner=imobso group=imobso mode=744 recurse=true
+
+    - name: create node app environment variables file
+      template: src=app-env.j2 dest=/var/node/imobso/.env owner=imobso group=imobso mode=0600
 
     - name: create app upstart script
       tags: foreman
