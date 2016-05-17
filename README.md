@@ -1,6 +1,7 @@
 # imobso
 Is My Open Bazaar Server Online?
 
+[![Build Status](https://travis-ci.org/insanity54/imobso.svg?branch=master)](https://travis-ci.org/insanity54/imobso)
 
 A public web service with REST API to check whether or not your openbazaar store is online. See it in action at (https://www.myopenbazaar.top/)[https://myopenbazaar.top]
 

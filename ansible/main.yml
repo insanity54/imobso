@@ -35,10 +35,14 @@
 
     openbazaar_git_url: https://github.com/OpenBazaar/OpenBazaar-Server.git
     openbazaar_git_version: 11b492ef1f397d2d465506be2cfc1d812e98a2d0
+    openbazaar_port: 18469
+    openbazaar_proto: http
+    openbazaar_host: 127.0.0.1
     openbazaar_username: "{{ vault_openbazaar_username }}"
     openbazaar_password: "{{ vault_openbazaar_password }}"
     openbazaar_allowed_ip: "{{ vault_openbazaar_allowed_ip }}"
     openbazaar_additional_flags: ""
+
 
     letsencrypt_webroot_path: /var/www/myopenbazaar.top
     letsencrypt_email: "{{ vault_admin_email }}"
@@ -57,6 +61,10 @@
     - name: create app user
       user: name=imobso shell=/bin/bash
 
+    - name: set up environment variables
+      tags: env
+      template: src=env.j2 dest=/etc/profile.d/imobso.sh owner=root group=root mode=0755
+
     - name: create folder for node
       file: state=directory path=/var/node/imobso owner=imobso owner=imobso group=imobso mode=0644
 
@@ -72,14 +80,23 @@
       notify:
         - reload nginx
 
+    - name: copy node app to its place
+      command: cp -a /tmp/imobso/source/. /var/node/imobso
+      args:
+        creates: /var/node/imobso/package.json
+
     - name: install node app
-      command: creates=/var/node/imobso/package.json cp -a /tmp/imobso/source/. /var/node/imobso
+      npm: path=/var/node/imobso
+
+    - name: create app log directory
+      file: path=/var/log/imobso owner=imobso group=imobso mode=0644 state=directory
 
     - name: create app upstart script
-      environment:
-        OB_PASSWORD: "{{ openbazaar_password }}"
-        OB_USERNAME: "{{ openbazaar_username }}"
-      command: creates=/etc/init/imobso.conf chdir=/var/node/imobso nf export --app imobso
+      tags: foreman
+      command: nf export --app imobso --user imobso --gid imobso --out /etc/init
+      args:
+        creates: /etc/init/imobso.conf
+        chdir: /var/node/imobso
 
     - name: copy upstart scripts to init dir
       copy: remote_src=True src=/var/node/imobso/{{ item.name }} dest=/etc/init/
