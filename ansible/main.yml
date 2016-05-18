@@ -14,10 +14,16 @@
     nginx_default_release: ""
     nginx_remove_default_vhost: true
     nginx_vhosts:
-      - listen: "80 default_server"
-        server_name: "myopenbazaar.top"
-        root: "/var/www/myopenbazaar.top"
-        index: "index.html index.htm"
+      - listen: "80"
+        server_name: myopenbazaar.top www.myopenbazaar.top;
+        return: 301 https://$host$request_uri;
+        
+      - listen: 443 ssl default_server
+        server_name: myopenbazaar.top www.myopenbazaar.top
+        ssl_certificate: /etc/letsencrypt/live/myopenbazaar.top/fullchain.pem
+        ssl_certificate_key: /etc/letsencrypt/live/myopenbazaar.top/privkey.pem
+        root: /var/www/myopenbazaar.top
+        index: index.html index.htm
 
         extra_parameters: |
           location / {
@@ -95,21 +101,10 @@
       template: src=app-env.j2 dest=/var/node/imobso/.env owner=imobso group=imobso mode=0600
 
     - name: create app upstart script
-      tags: foreman
       command: nf export --app imobso --user imobso --gid imobso --out /etc/init
       args:
         creates: /etc/init/imobso.conf
         chdir: /var/node/imobso
-
-    - name: copy upstart scripts to init dir
-      copy: remote_src=True src=/var/node/imobso/{{ item.name }} dest=/etc/init/
-      with_items:
-        - name: imobso.conf
-        - name: imobso-web.conf
-        - name: imobso-web-1.conf
-      notify:
-        - restart app
-        - restart openbazaar
 
 
   handlers:
