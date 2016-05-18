@@ -6,12 +6,13 @@ info:
   description: Quickly get your store's online status
   version: "1.0.0"
 # the domain of the service
-host: imobso.grimtech.net
+host: myopenbazaar.top
 # array of all schemes that your API supports
 schemes:
   - https
+  - http
 # will be prefixed to all paths
-basePath: /v1
+basePath: /api/v1
 produces:
   - application/json
 paths:
