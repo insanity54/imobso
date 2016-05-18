@@ -12,7 +12,7 @@ schemes:
   - https
   - http
 # will be prefixed to all paths
-basePath: /api/v1
+basePath: /v1
 produces:
   - application/json
 paths:
