@@ -1,8 +1,8 @@
 {
-  "name": "imobso2",
-  "version": "0.0.1",
+  "name": "imobso",
+  "version": "0.0.2",
   "private": true,
-  "description": "New Swagger API Project",
+  "description": "Is My OpenBazaar-Server Online?",
   "keywords": [],
   "author": "",
   "license": "",
