@@ -26,11 +26,16 @@
         extra_parameters: |
           ssl_certificate       /etc/letsencrypt/live/myopenbazaar.top/fullchain.pem;
           ssl_certificate_key   /etc/letsencrypt/live/myopenbazaar.top/privkey.pem;
+          ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # omit SSLv3 because of POODLE (CVE-2014-3566)
+          ssl_ciphers 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA';
+          ssl_prefer_server_ciphers on;
+          ssl_dhparam /etc/weakdh/dhparams.pem;
+
           location / {
             try_files $uri $uri/ @api;
           }
           location @api {
-            proxy_pass            http://127.0.0.1:5000/;
+            proxy_pass            http://127.0.0.1:5000;
             proxy_redirect        off;
             proxy_buffering       off;
             proxy_set_header      X-Real-IP $remote_addr;
@@ -76,6 +81,14 @@
 
     - name: create folder for nginx
       file: state=directory path=/var/www/myopenbazaar.top owner=www-data group=www-data mode=0755
+
+    - name: create folder for dhparam
+      file: state=directory path=/etc/weakdh owner=root group=root mode=0755
+
+    - name: setup strong Diffie-Hellman # https://weakdh.org/sysadmin.html
+      command: openssl dhparam -out /etc/weakdh/dhparams.pem 2048
+      args:
+        creates: /etc/weakdh/dhparams.pem
 
       # @todo switch to copy module once https://github.com/ansible/ansible-modules-core/issues/2875 is closed
     - name: copy client/dist files to nginx dir

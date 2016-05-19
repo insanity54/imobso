@@ -3,6 +3,8 @@
 swagger: '2.0'
 info:
   title: Is My OpenBazaar Store Online? - API
+  contact:
+    email: chris@grimtech.net
   description: Quickly get your store's online status
   version: "1.0.0"
 # the domain of the service

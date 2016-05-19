@@ -8,6 +8,8 @@ A public web service with REST API to check whether or not your openbazaar store
 
 ## Administrative tasks
 
+(from the `ansible` directory)
+
 ### deploy app to server
 
 install ansible dependencies
@@ -27,5 +29,11 @@ deploy to server
 
 ## Example use cases
 
-  * monitor your store's uptime using infrastructure monitoring software
-  * check that your home router's port forwarding is properly configured
+  * Do a quick check to see if your store is online without needing to enter the [Slack](https://openbazaar.slack.com/) chat.
+  * Monitor your store's uptime using a simple HTTP request from your infrastructure monitoring software
+  * Check that your home router's port forwarding is properly configured
+
+
+## Roadmap
+
+* [ ] allow onename lookups in place of guid [#1](https://github.com/insanity54/imobso/issues/1)
