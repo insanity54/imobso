@@ -54,6 +54,8 @@
     openbazaar_allowed_ip: "{{ vault_openbazaar_allowed_ip }}"
     openbazaar_additional_flags: ""
 
+    onename_id: "{{ vault_onename_id }}"
+    onename_secret: "{{ vault_onename_secret }}"
 
     letsencrypt_webroot_path: /var/www/myopenbazaar.top
     letsencrypt_email: "{{ vault_admin_email }}"

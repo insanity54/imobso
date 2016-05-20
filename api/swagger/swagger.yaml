@@ -18,17 +18,17 @@ basePath: /v1
 produces:
   - application/json
 paths:
-  /online/{guid}:
+  /online/{store}:
     x-swagger-router-controller: online_controller
     get:
       operationId: isOnline
-      summary: Online Status
+      summary: Online Status of store GUID
       description: |
-        Get the online status of your OpenBazaar store. This is found by querying a live OpenBazaar-Server instance. If said server is able to retrieve your store's profile, your store is considered online.
+        Get the online status of your OpenBazaar store. This can either be an OpenBazaar GUID or a [onename](https://onename.com) store name. Online status is found by querying a live OpenBazaar-Server instance. If said server is able to retrieve your store's profile, your store is considered online.
       parameters:
-        - name: guid
+        - name: store
           in: path
-          description: Your OpenBazaar store ID.
+          description: Your OpenBazaar store onename or GUID.
           required: true
           type: string
           format: string
